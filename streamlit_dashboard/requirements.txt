@@ -1,0 +1,29 @@
+# RetailPulse Streamlit Dashboard dependencies
+streamlit
+pandas
+numpy
+matplotlib
+reportlab
+
+# LSTM forecasting / model loading
+torch
+pytorch-lightning
+scikit-learn
+joblib
+
+# Churn prediction model
+xgboost
+
+# Analysis and forecasting notebooks
+prophet
+seaborn
+statsmodels
+optuna
+shap
+evidently
+great-expectations
+requests
+ipython
+
+# Dashboard charts
+plotly

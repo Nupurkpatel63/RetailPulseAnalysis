@@ -1,0 +1,9 @@
+{
+  "product": "21212",
+  "candidate_mae": 132.23190488967055,
+  "candidate_rmse": 223.60009002692877,
+  "test_start": "2010-09-29",
+  "test_end": "2010-12-09",
+  "promoted": true,
+  "decision": "Initial champion or evaluation window changed; candidate accepted as new baseline."
+}

@@ -1,0 +1,2 @@
+StockCode,AverageDailyDemand,LeadTimeDays,SafetyStock,ReorderPoint,CurrentStock_Assumed,InventoryPosition,ShouldReorder,SuggestedReorderQuantity
+21212,153.7566844919786,7,803,1879,20,20,True,6472
