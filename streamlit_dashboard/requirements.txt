@@ -25,8 +25,5 @@ great-expectations
 requests
 ipython
 
-#Demanding
-lightning
-
 # Dashboard charts
 plotly
