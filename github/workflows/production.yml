@@ -1,0 +1,111 @@
+name: RetailPulse Production CI/CD Deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: retailpulseanalysis
+  REGION: asia-south1
+  CLUSTER_NAME: retailpulse-gke
+  REPOSITORY: retailpulse-registry
+  IMAGE_NAME: retailpulse
+  DEPLOYMENT_NAME: retailpulse
+  CONTAINER_NAME: retailpulse
+  NAMESPACE: production
+
+jobs:
+  deploy-production:
+    name: Build, Test and Deploy Production
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      # 1. Checkout source code
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # 2. Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      # 3. Install dependencies
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4. Validate Python files
+      - name: Run Application Checks
+        run: |
+          python -m compileall streamlit_dashboard
+
+      # 5. Authenticate with Google Cloud using WIF
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SERVICE_ACCOUNT }}
+
+      # 6. Set up Google Cloud SDK
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      # 7. Configure Docker authentication
+      - name: Configure Docker Authentication
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      # 8. Build production Docker image
+      - name: Build Production Docker Image
+        run: |
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+
+      # 9. Push production Docker image
+      - name: Push Production Docker Image
+        run: |
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      # 10. Get GKE credentials
+      - name: Get GKE Credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.CLUSTER_NAME }}
+          location: ${{ env.REGION }}
+          project_id: ${{ env.PROJECT_ID }}
+
+      # 11. Create production namespace
+      - name: Create Production Namespace
+        run: |
+          kubectl create namespace ${{ env.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+
+      # 12. Deploy production Kubernetes manifests
+      - name: Deploy to GKE Production
+        run: |
+          kubectl apply -f k8s/production/ -n ${{ env.NAMESPACE }}
+
+          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
+            ${{ env.CONTAINER_NAME }}=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -n ${{ env.NAMESPACE }}
+
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} \
+            -n ${{ env.NAMESPACE }} \
+            --timeout=300s
+
+      # 13. Verify production deployment
+      - name: Verify Production Deployment
+        run: |
+          kubectl get pods -n ${{ env.NAMESPACE }}
+          kubectl get deployments -n ${{ env.NAMESPACE }}
+          kubectl get services -n ${{ env.NAMESPACE }}

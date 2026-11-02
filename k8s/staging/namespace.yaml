@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: retailpulse-staging
+  labels:
+    app.kubernetes.io/name: retailpulse
+    environment: staging

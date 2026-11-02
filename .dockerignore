@@ -1,0 +1,75 @@
+
+# Python virtual environments
+venv/
+env/
+.venv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Git files
+.git/
+.gitignore
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE settings
+.vscode/
+.idea/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Docker files
+.dockerignore
+
+# Temporary files
+*.tmp
+*.bak
+
+# Documentation (optional)
+README.md
+docs/
+
+# Local datasets and large files (adjust if required)
+*.csv
+*.xlsx
+*.parquet
+
+# Model training artifacts (adjust if required)
+mlruns/
+```
+
+### Why these exclusions?
+
+| Folder/File | Reason |
+|---|---|
+| `venv/` | Avoid copying local Python packages |
+| `.env` | Protect environment variables and secrets |
+| `.git/` | Reduce Docker build context |
+| `__pycache__/` | Exclude unnecessary Python cache |
+| `.ipynb_checkpoints/` | Remove notebook temporary files |
+| `mlruns/` | Avoid copying MLflow experiment artifacts |
+| `*.csv` | Avoid copying large datasets unnecessarily |
+
+**Important for RetailPulse:** If your application needs CSV datasets, trained `.pkl` models, or other files at runtime, do not exclude them. Remove the corresponding patterns from `.dockerignore`.
+
+For example, if your Streamlit application loads a trained model from `deployment/model/`, make sure that directory is included in your Docker image.
