@@ -8,7 +8,6 @@ reportlab
 # LSTM forecasting / model loading
 torch
 pytorch-lightning
-lightning.pytorch
 scikit-learn
 joblib
 
